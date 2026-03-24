@@ -73,19 +73,22 @@ public class CheckoutService {
         BigDecimal discountAmount = couponService.apply(couponCode, subtotal);
         BigDecimal afterDiscount = subtotal.subtract(discountAmount);
 
-        // 4. Calculate tax
+        // 4. Calculate tax (null-safe)
         TaxResult tax = taxService.calculate(request.getShippingAddress(), afterDiscount);
-        BigDecimal total = afterDiscount.add(tax.getTaxAmount());
+        BigDecimal taxAmount = (tax != null && tax.getTaxAmount() != null)
+            ? tax.getTaxAmount()
+            : BigDecimal.ZERO;
+        BigDecimal total = afterDiscount.add(taxAmount);
 
         // 5. Insert order via Supabase REST API
         String orderId = UUID.randomUUID().toString();
-        Map<String, Object> orderPayload = Map.of(
-            "id", orderId,
-            "session_id", sessionId,
-            "email", request.getEmail(),
-            "shipping_address", request.getShippingAddress(),
-            "total_usd", total
-        );
+        Map<String, Object> orderPayload = new java.util.HashMap<>();
+        orderPayload.put("id", orderId);
+        orderPayload.put("session_id", sessionId);
+        orderPayload.put("email", request.getEmail());
+        orderPayload.put("shipping_address", request.getShippingAddress());
+        orderPayload.put("total_usd", total);
+
         HttpEntity<Map<String, Object>> orderRequest = new HttpEntity<>(orderPayload, supabaseHeaders());
         restTemplate.postForObject(supabaseUrl + "/rest/v1/orders", orderRequest, Void.class);
 
@@ -96,24 +99,29 @@ public class CheckoutService {
             int quantity = (Integer) item.get("quantity");
             String productId = product.get("id").toString();
 
-            Map<String, Object> itemPayload = Map.of(
-                "order_id", orderId,
-                "product_id", productId,
-                "quantity", quantity,
-                "unit_price_usd", price
-            );
+            Map<String, Object> itemPayload = new java.util.HashMap<>();
+            itemPayload.put("order_id", orderId);
+            itemPayload.put("product_id", productId);
+            itemPayload.put("quantity", quantity);
+            itemPayload.put("unit_price_usd", price);
+
             HttpEntity<Map<String, Object>> itemRequest = new HttpEntity<>(itemPayload, supabaseHeaders());
             restTemplate.postForObject(supabaseUrl + "/rest/v1/order_items", itemRequest, Void.class);
         }
 
-        // 7. Call payment-svc
-        Map<String, Object> paymentPayload = Map.of("orderId", orderId, "amount", total);
+        // 7. Call payment-svc (avoid Map.of to be robust against nulls)
+        Map<String, Object> paymentPayload = new java.util.HashMap<>();
+        paymentPayload.put("orderId", orderId);
+        paymentPayload.put("amount", total);
+
         Map<String, Object> paymentResponse = restTemplate.postForObject(
             paymentServiceUrl + "/payments",
             paymentPayload,
             Map.class
         );
-        String transactionId = (String) paymentResponse.get("transactionId");
+        String transactionId = paymentResponse != null
+            ? (String) paymentResponse.get("transactionId")
+            : null;
 
         // 8. Clear cart
         restTemplate.delete(cartServiceUrl + "/cart/" + sessionId);
@@ -121,7 +129,9 @@ public class CheckoutService {
         return new CheckoutResult(
             orderId, transactionId,
             subtotal, couponCode, discountAmount,
-            tax.getState(), tax.getRate(), tax.getTaxAmount(),
+            tax != null ? tax.getState() : null,
+            tax != null ? tax.getRate() : 0.0,
+            taxAmount,
             total
         );
     }

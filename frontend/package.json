@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"PORT=4000 node --env-file=.env server.js\" \"vite\"",
     "build": "vite build",
-    "start": "NODE_ENV=production node --env-file=.env server.js"
+    "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",

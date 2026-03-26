@@ -1,8 +1,12 @@
-# Supabase REST API
-supabase.url=https://your-project.supabase.co
-supabase.key=your-supabase-anon-key
+# Copy to application.properties for local development.
+# On Render (or any cloud host), set these as environment variables instead —
+# Spring Boot automatically maps SUPABASE_URL → supabase.url, etc.
 
-# Downstream service URLs
+# Supabase REST API
+supabase.url=https://YOUR_PROJECT_ID.supabase.co
+supabase.key=YOUR_SUPABASE_ANON_KEY
+
+# Downstream service URLs (use Render internal URLs in production)
 cart.service.url=http://localhost:3002
 payment.service.url=http://localhost:3003
 

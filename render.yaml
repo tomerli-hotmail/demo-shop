@@ -1,0 +1,87 @@
+services:
+  # ── Frontend (Express proxy + Vite SPA) ──────────────────────────────────────
+  - type: web
+    name: demoshop-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: NODE_ENV=production node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PRODUCT_CATALOG_URL
+        fromService:
+          name: demoshop-catalog
+          type: web
+          property: host
+      - key: CART_URL
+        fromService:
+          name: demoshop-cart
+          type: web
+          property: host
+      - key: CHECKOUT_URL
+        fromService:
+          name: demoshop-checkout
+          type: web
+          property: host
+
+  # ── Product Catalog Service ───────────────────────────────────────────────────
+  - type: web
+    name: demoshop-catalog
+    runtime: node
+    rootDir: product-catalog-svc
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+  # ── Cart Service ──────────────────────────────────────────────────────────────
+  - type: web
+    name: demoshop-cart
+    runtime: node
+    rootDir: cart-svc
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+  # ── Payment Service ───────────────────────────────────────────────────────────
+  - type: web
+    name: demoshop-payment
+    runtime: node
+    rootDir: payment-svc
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+  # ── Checkout Service (Java Spring Boot via Docker) ────────────────────────────
+  - type: web
+    name: demoshop-checkout
+    runtime: docker
+    rootDir: checkout-svc
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: CART_SERVICE_URL
+        fromService:
+          name: demoshop-cart
+          type: web
+          property: host
+      - key: PAYMENT_SERVICE_URL
+        fromService:
+          name: demoshop-payment
+          type: web
+          property: host

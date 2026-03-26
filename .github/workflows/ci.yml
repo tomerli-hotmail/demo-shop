@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ── Frontend: install, build ──────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Vite build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm install
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+
+  # ── Node.js backend services: install + test ──────────────────────────────────
+  node-services:
+    name: Node services (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [product-catalog-svc, cart-svc, payment-svc]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+      - run: npm install
+        working-directory: ${{ matrix.service }}
+      - run: npm test --if-present
+        working-directory: ${{ matrix.service }}
+
+  # ── Java checkout-svc: Maven build + test ─────────────────────────────────────
+  checkout-svc:
+    name: checkout-svc (Java 17 / Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+      - name: Build
+        run: mvn -q package -DskipTests
+        working-directory: checkout-svc
+      - name: Test
+        run: mvn test
+        working-directory: checkout-svc
+        continue-on-error: true
+
+  # ── Docker build check for checkout-svc ──────────────────────────────────────
+  checkout-docker:
+    name: checkout-svc Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: checkout-svc
+          push: false

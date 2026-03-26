@@ -11,20 +11,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: PRODUCT_CATALOG_URL
-        fromService:
-          name: demoshop-catalog
-          type: web
-          property: host
+        value: https://demoshop-catalog.onrender.com
       - key: CART_URL
-        fromService:
-          name: demoshop-cart
-          type: web
-          property: host
+        value: https://demoshop-cart.onrender.com
       - key: CHECKOUT_URL
-        fromService:
-          name: demoshop-checkout
-          type: web
-          property: host
+        value: https://demoshop-checkout.onrender.com
 
   # ── Product Catalog Service ───────────────────────────────────────────────────
   - type: web
@@ -81,12 +72,6 @@ services:
       - key: SUPABASE_KEY
         sync: false
       - key: CART_SERVICE_URL
-        fromService:
-          name: demoshop-cart
-          type: web
-          property: host
+        value: https://demoshop-cart.onrender.com
       - key: PAYMENT_SERVICE_URL
-        fromService:
-          name: demoshop-payment
-          type: web
-          property: host
+        value: https://demoshop-payment.onrender.com

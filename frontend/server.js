@@ -19,6 +19,13 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+async function proxyJson(r) {
+  const ct = r.headers.get('content-type') ?? '';
+  if (ct.includes('application/json')) return r.json();
+  const text = await r.text();
+  return { error: text || `HTTP ${r.status}` };
+}
+
 // ── Product catalog ──────────────────────────────────────────────────────────
 
 app.get('/api/products', async (req, res) => {
@@ -28,7 +35,7 @@ app.get('/api/products', async (req, res) => {
     : `${PRODUCT_URL}/products`;
   try {
     const r = await fetch(url);
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -37,7 +44,7 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/products/:id', async (req, res) => {
   try {
     const r = await fetch(`${PRODUCT_URL}/products/${req.params.id}`);
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -50,7 +57,7 @@ app.get('/api/cart', async (req, res) => {
   if (!sessionId) return res.json({ items: [] });
   try {
     const r = await fetch(`${CART_URL}/cart/${sessionId}`);
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -65,7 +72,7 @@ app.post('/api/cart/items', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
     });
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -80,7 +87,7 @@ app.patch('/api/cart/items/:productId', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
     });
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -108,7 +115,7 @@ app.post('/api/auth/login', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
     });
-    const data = await r.json();
+    const data = await proxyJson(r);
     if (!r.ok) return res.status(r.status).json(data);
 
     const maxAge = 60 * 60 * 24 * 7; // 7 days in seconds
@@ -141,7 +148,7 @@ app.get('/api/auth/me', async (req, res) => {
   if (!token) return res.status(401).json({ error: 'Not logged in' });
   try {
     const r = await fetch(`${CHECKOUT_URL}/auth/me?token=${token}`);
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -154,7 +161,7 @@ app.get('/api/orders', async (req, res) => {
   if (!email) return res.status(401).json({ error: 'Not logged in' });
   try {
     const r = await fetch(`${CHECKOUT_URL}/orders?email=${encodeURIComponent(email)}`);
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }
@@ -171,7 +178,7 @@ app.post('/api/checkout', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...req.body, sessionId }),
     });
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: `Checkout service unavailable: ${err}` });
   }
@@ -184,7 +191,7 @@ app.post('/api/coupons/validate', async (req, res) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
     });
-    res.status(r.status).json(await r.json());
+    res.status(r.status).json(await proxyJson(r));
   } catch (err) {
     res.status(502).json({ error: String(err) });
   }

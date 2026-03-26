@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     ensureSession();
@@ -27,15 +28,25 @@ export default function ProductDetail() {
 
   async function addToCart() {
     setAdding(true);
-    await fetch('/api/cart/items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: id, quantity: 1 }),
-    });
+    setAddError(null);
+    try {
+      const r = await fetch('/api/cart/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: id, quantity: 1 }),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        setAddError(body.error ?? `Error ${r.status} — try again`);
+      } else {
+        setAdded(true);
+        window.dispatchEvent(new Event('cart-updated'));
+        setTimeout(() => setAdded(false), 2000);
+      }
+    } catch {
+      setAddError('Cart service unavailable — try again in a moment');
+    }
     setAdding(false);
-    setAdded(true);
-    window.dispatchEvent(new Event('cart-updated'));
-    setTimeout(() => setAdded(false), 2000);
   }
 
   if (!product) {
@@ -79,6 +90,9 @@ export default function ProductDetail() {
             >
               {added ? 'Added!' : adding ? 'Adding...' : 'Add to Cart'}
             </button>
+            {addError && (
+              <p className="mt-2 text-xs text-red-500 text-center">{addError}</p>
+            )}
             <a
               href="/cart"
               className="block text-center mt-3 text-sm text-gray-500 hover:text-gray-900"

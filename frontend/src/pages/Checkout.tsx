@@ -8,6 +8,9 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState('');
   const [couponMsg, setCouponMsg] = useState('');
   const [couponValid, setCouponValid] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,6 +51,9 @@ export default function Checkout() {
           email,
           shippingAddress: address,
           couponCode: couponValid ? couponCode.trim().toUpperCase() : undefined,
+          cardNumber,
+          expiry,
+          cvv,
         }),
       });
 
@@ -123,6 +129,49 @@ export default function Checkout() {
           {couponMsg && (
             <p className={`text-xs mt-1 ${couponValid ? 'text-green-600' : 'text-red-500'}`}>{couponMsg}</p>
           )}
+        </div>
+        <div>
+          <p className="text-sm font-medium mb-3">Payment Details</p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Card Number</label>
+              <input
+                type="text"
+                required
+                value={cardNumber}
+                onChange={e => setCardNumber(e.target.value)}
+                placeholder="1234 5678 9012 3456"
+                maxLength={19}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">Expiry (MM/YY)</label>
+                <input
+                  type="text"
+                  required
+                  value={expiry}
+                  onChange={e => setExpiry(e.target.value)}
+                  placeholder="MM/YY"
+                  maxLength={5}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">CVV</label>
+                <input
+                  type="text"
+                  required
+                  value={cvv}
+                  onChange={e => setCvv(e.target.value)}
+                  placeholder="123"
+                  maxLength={4}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+                />
+              </div>
+            </div>
+          </div>
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button

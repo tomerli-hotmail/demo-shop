@@ -62,8 +62,10 @@ cd product-catalog-svc && npm install && npm run dev   # :3001
 cd cart-svc            && npm install && npm run dev   # :3002
 cd payment-svc         && npm install && npm run dev   # :3003
 cd checkout-svc        && mvn spring-boot:run          # :8080
-cd frontend            && npm install && npm run dev   # :3000 (Vite) + :4000 (Express)
+cd frontend            && npm install && npm run dev   # :3000 + :4000
 ```
+
+The frontend `dev` script starts two processes: the Vite dev server on `:3000` (SPA) and the Express API proxy on `:4000`. Vite automatically proxies `/api/*` requests to Express.
 
 Visit [http://localhost:3000](http://localhost:3000)
 

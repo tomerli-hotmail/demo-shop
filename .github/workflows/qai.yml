@@ -78,3 +78,4 @@ jobs:
           fail-on-high-risk: 'false'
           qai-url: https://ingest.useqai.dev
           qai-api-key: ${{ secrets.QAI_API_KEY }}
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}

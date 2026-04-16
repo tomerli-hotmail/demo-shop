@@ -15,9 +15,11 @@ That's it. The CI will run Playwright E2E tests and QAI will analyze the results
 ## What you'll see
 
 - **AI Root Cause Analysis** — why each test failed and how to fix it
+- **Trace Analysis** — deep RCA from Playwright traces (network errors, console exceptions, slow actions)
 - **Failure Clusters** — recurring patterns across runs
 - **Risk Score** — merge recommendation based on test results
 - **Code Fixes** — copy-paste ready fixes grounded in your test source
+- **Ask QAI** — chat with your test results to dig deeper into any failure
 
 ## About the app
 

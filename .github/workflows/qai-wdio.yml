@@ -1,0 +1,52 @@
+name: QAI - WebdriverIO
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: e2e-wdio
+
+      - name: Run WebdriverIO tests
+        run: npm test
+        continue-on-error: true
+        working-directory: e2e-wdio
+        env:
+          BASE_URL: https://frontend-production-3988.up.railway.app
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-wdio
+          path: e2e-wdio/test-results/*.xml
+          retention-days: 30
+
+      - name: QAI Agent
+        uses: useqai/qai-agent@v1
+        if: always()
+        with:
+          suite-name: 'WebdriverIO'
+          junit-path: 'e2e-wdio/test-results/*.xml'
+          fail-on-high-risk: 'false'
+          qai-url: https://ingest.useqai.dev
+          qai-api-key: ${{ secrets.QAI_API_KEY }}

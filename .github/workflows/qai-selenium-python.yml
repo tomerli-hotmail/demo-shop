@@ -1,0 +1,54 @@
+name: QAI - Selenium Python
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: e2e-selenium-python/requirements.txt
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: e2e-selenium-python
+
+      - name: Run Selenium Python tests
+        run: pytest --junit-xml=test-results/results.xml
+        continue-on-error: true
+        working-directory: e2e-selenium-python
+        env:
+          BASE_URL: https://frontend-production-3988.up.railway.app
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-selenium-python
+          path: e2e-selenium-python/test-results/results.xml
+          retention-days: 30
+
+      - name: QAI Agent
+        uses: useqai/qai-agent@v1
+        if: always()
+        with:
+          suite-name: 'Selenium Python'
+          junit-path: 'e2e-selenium-python/test-results/results.xml'
+          fail-on-high-risk: 'false'
+          qai-url: https://ingest.useqai.dev
+          qai-api-key: ${{ secrets.QAI_API_KEY }}

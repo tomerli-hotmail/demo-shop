@@ -1,0 +1,48 @@
+name: QAI - Selenium Java
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run Selenium Java tests
+        run: mvn test -Dbase.url=https://frontend-production-3988.up.railway.app
+        continue-on-error: true
+        working-directory: e2e-selenium-java
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-selenium-java
+          path: e2e-selenium-java/target/surefire-reports/*.xml
+          retention-days: 30
+
+      - name: QAI Agent
+        uses: useqai/qai-agent@v1
+        if: always()
+        with:
+          suite-name: 'Selenium Java'
+          junit-path: 'e2e-selenium-java/target/surefire-reports/*.xml'
+          fail-on-high-risk: 'false'
+          qai-url: https://ingest.useqai.dev
+          qai-api-key: ${{ secrets.QAI_API_KEY }}

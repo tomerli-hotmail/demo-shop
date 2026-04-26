@@ -1,5 +1,5 @@
 import { expect } from '@wdio/globals'
-import { login, addFirstProductToCart } from '../helpers/actions.js'
+import { login, addFirstProductToCart } from '../helpers/actions'
 
 const BASE_URL = process.env.BASE_URL || 'https://frontend-production-3988.up.railway.app'
 

@@ -12,7 +12,6 @@
     "@wdio/mocha-framework": "^8.36.1",
     "@wdio/spec-reporter": "^8.36.1",
     "@wdio/junit-reporter": "^8.36.1",
-    "chromedriver": "latest",
     "wdio-chromedriver-service": "^8.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",

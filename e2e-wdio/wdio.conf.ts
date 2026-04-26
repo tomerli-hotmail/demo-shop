@@ -36,7 +36,7 @@ export const config: Options.Testrunner = {
     connectionRetryTimeout: 120000,
     connectionRetryCount: 3,
 
-    services: ['chromedriver'],
+    services: [['chromedriver', { chromedriverCustomPath: 'chromedriver' }]],
 
     framework: 'mocha',
     reporters: [
